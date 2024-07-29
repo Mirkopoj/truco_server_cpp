@@ -1,4 +1,4 @@
-CC = g++
+CC = clang++
 LDFLAGS = -L../truco_domain_wrapper/target/release -ltruco_domain_wrapper
 LDTESTFLAGS = -lcriterion 
 CFLAGS = -O -std=c++20 

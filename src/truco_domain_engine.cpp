@@ -83,7 +83,7 @@ TrucoBuilder::TrucoBuilder()
 
 void TrucoBuilder::add_player(const char *player) {
   if (count >= MAX_PLAYERS) {
-    throw new std::runtime_error("Reached Max player limit");
+    throw std::runtime_error("Reached Max player limit");
   }
   ::add_player((const TrucoBuilderRust *)truco_builder, player);
   count++;
@@ -91,7 +91,7 @@ void TrucoBuilder::add_player(const char *player) {
 
 void TrucoBuilder::hasta(uint8_t hasta) {
   if (tiene_limite) {
-    throw new std::runtime_error("All ready was limited");
+    throw std::runtime_error("All ready was limited");
   }
   ::hasta((const TrucoBuilderRust *)truco_builder, hasta);
   tiene_limite = true;
@@ -99,14 +99,14 @@ void TrucoBuilder::hasta(uint8_t hasta) {
 
 Truco TrucoBuilder::build() {
   if (count >= MAX_PLAYERS || count % 2 != 0 || !tiene_limite) {
-    throw new std::runtime_error("Can't build a game in this conditions");
+    throw std::runtime_error("Can't build a game in this conditions");
   }
   CResultTruco res = ::build((const TrucoBuilderRust *)truco_builder);
   switch (res.tag) {
   case Ok:
     return Truco((const void *)res.content.value);
   case Err:
-    throw new std::runtime_error("Building Failed");
+    throw std::runtime_error("Building Failed");
   }
 }
 
@@ -118,7 +118,7 @@ void Truco::irse_al_maso(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -128,7 +128,7 @@ void Truco::cantar_quiero(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -138,7 +138,7 @@ void Truco::cantar_no_quiero(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -148,7 +148,7 @@ void Truco::cantar_envido(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -158,7 +158,7 @@ void Truco::cantar_real_envido(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -168,7 +168,7 @@ void Truco::cantar_falta_envido(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -178,7 +178,7 @@ void Truco::cantar_truco(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -188,7 +188,7 @@ void Truco::cantar_re_truco(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -198,7 +198,7 @@ void Truco::cantar_vale_cuatro(const char *player) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
@@ -208,7 +208,7 @@ void Truco::tirar_carta(const char *player, size_t card) {
   case Ok:
     return;
   case Err:
-    throw new std::runtime_error(res.error);
+    throw std::runtime_error(res.error);
   }
 }
 
