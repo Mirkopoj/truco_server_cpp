@@ -6,6 +6,7 @@
 #include <ostream>
 #include <signal.h>
 #include <stdexcept>
+#include <string>
 #include <sys/time.h>
 #include <vector>
 
@@ -35,6 +36,7 @@ int main() {
       std::cout << "Conection from: " << client.addr() << std::endl;
       join_handles.push_back(
           std::async(std::launch::async, handle_client, std::move(client)));
+      std::cout << "Conected" << std::endl;
     } catch (const std::runtime_error &e) {
       std::cerr << e.what() << std::endl;
     }
@@ -50,8 +52,20 @@ int main() {
 class AutenticatedUser {
 public:
   AutenticatedUser(Socket);
+
+  std::string m_name;
+private:
+  Socket m_socket;
 };
 
 void handle_client(Socket socket) {
-  // AutenticatedUser authenticaded_user(std::move(socket));
+  std::cout << "Cliente\n";
+  AutenticatedUser authenticaded_user(std::move(socket));
+  std::cout << "Autenticado: " << authenticaded_user.m_name << "\n";
+}
+
+AutenticatedUser::AutenticatedUser(Socket socket)
+    : m_socket(std::move(socket)) {
+  m_socket.send("Ingrese su nombre\n");
+  m_name = m_socket.recv();
 }

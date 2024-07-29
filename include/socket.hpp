@@ -7,7 +7,7 @@
 
 class Socket {
 public:
-  Socket(Socket &&) = default;
+  Socket(Socket &&);
   Socket(const Socket &) = delete;
   Socket &operator=(Socket &&) = delete;
   Socket &operator=(const Socket &) = delete;

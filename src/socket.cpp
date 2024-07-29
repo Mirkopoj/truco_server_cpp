@@ -3,11 +3,13 @@
 #include <cerrno>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <strings.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <poll.h>
 
 SocketListener::SocketListener(uint16_t port, int backlog) {
   bzero((char *)&m_socket_addr, sizeof(m_socket_addr));
@@ -45,11 +47,24 @@ Socket::Socket(sockaddr_in new_socket_addr, socklen_t new_socket_len,
     : m_socket_addr(new_socket_addr), m_socket_len(new_socket_len),
       m_socket_fd(new_socket_fd) {}
 
+Socket::Socket(Socket &&other)
+    : m_socket_addr(other.m_socket_addr), m_socket_len(other.m_socket_len),
+      m_socket_fd(other.m_socket_fd) {
+  other.m_socket_fd = -1;
+}
+
 std::string Socket::recv() {
   const size_t buf_size = 1024;
   char buf[buf_size];
   std::string ret;
   int read;
+  struct pollfd fds;
+  fds.fd = m_socket_fd;
+  fds.events = POLLIN;
+  int poll_result = poll(&fds, 1, -1); 
+  if (poll_result == -1) {
+    throw std::runtime_error("Error in poll");
+  }
   do {
     read = ::recv(m_socket_fd, buf, buf_size, 0);
     if (read < 0) {
@@ -63,7 +78,10 @@ std::string Socket::recv() {
   return ret;
 }
 
-bool Socket::no_messages() { return errno == EWOULDBLOCK; }
+bool Socket::no_messages() {
+  int err = errno;
+  return err == EWOULDBLOCK || err == EAGAIN;
+}
 
 void Socket::send(std::string msg) {
   int sent = ::send(m_socket_fd, msg.data(), msg.length(), 0);
@@ -78,4 +96,9 @@ std::string Socket::addr() {
   return ret;
 }
 
-Socket::~Socket() { close(m_socket_fd); }
+Socket::~Socket() {
+  if (m_socket_fd != -1) {
+    std::cout << "RIP Socket\n";
+    close(m_socket_fd);
+  }
+}
