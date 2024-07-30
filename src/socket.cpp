@@ -71,7 +71,7 @@ std::string Socket::recv(struct pollfd *fd) {
   if (poll_result == -1) {
     throw std::runtime_error("Error in poll");
   }
-  if (fds[1].revents & POLLIN) {
+  if (fd && fds[1].revents & POLLIN) {
     throw std::runtime_error("Cancelation");
   }
   do {

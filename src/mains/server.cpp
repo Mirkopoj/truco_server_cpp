@@ -21,7 +21,6 @@
 
 std::atomic<bool> quit(false);
 void got_signal(int) { quit.store(true); }
-int pipe_fd[2];
 
 typedef struct {
   std::unique_ptr<const LobbyCommand> command;
@@ -38,11 +37,6 @@ int main() {
   sa.sa_handler = got_signal;
   sigfillset(&sa.sa_mask);
   sigaction(SIGINT, &sa, NULL);
-
-  if (pipe(pipe_fd)) {
-    std::cerr << "Fail to create cancel pipe" << std::endl;
-    return 1;
-  }
 
   msd::channel<LobbyMsg> channel;
   std::thread(lobby, std::ref(channel)).detach();
@@ -62,13 +56,10 @@ int main() {
     if (quit.load()) {
       std::cerr << "SIGINT" << std::endl;
       channel << LobbyMsg{};
-      write(pipe_fd[0], "", 1);
       break;
     }
   }
 
-  close(pipe_fd[0]);
-  close(pipe_fd[1]);
   std::cout << "Exiting" << std::endl;
   return 0;
 }
@@ -76,14 +67,11 @@ int main() {
 void handle_client(Socket socket, msd::channel<LobbyMsg> &lobby_ch) {
   AutenticatedUser authenticaded_user(std::move(socket));
   msd::channel<std::string> resp;
-  struct pollfd cancel_fd;
-  cancel_fd.fd = pipe_fd[1];
-  cancel_fd.events = POLLIN;
   while (1) {
     try {
       LobbyMsg msg = {
           .command = LobbyCommandFactory::build(
-              authenticaded_user.recv(&cancel_fd), &authenticaded_user),
+              authenticaded_user.recv(), &authenticaded_user),
           .channel = &resp,
       };
       lobby_ch << std::move(msg);
@@ -91,10 +79,6 @@ void handle_client(Socket socket, msd::channel<LobbyMsg> &lobby_ch) {
       resp >> res;
       authenticaded_user.send(res);
     } catch (const std::runtime_error &e) {
-      if (quit.load()) {
-        std::cerr << "SIGINT CLIENT" << std::endl;
-        return;
-      }
       authenticaded_user.send(e.what());
     }
   }
