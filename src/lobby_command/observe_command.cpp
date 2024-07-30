@@ -14,7 +14,7 @@ std::string ObserveCommand::execute(std::vector<Table> &tables) const {
   } catch (const std::out_of_range &e) {
     return e.what();
   }
-  return "Joined Succesfully as an observer";
+  return "Joined Succesfully as an observer\n";
 }
 
 std::unique_ptr<const LobbyCommand>

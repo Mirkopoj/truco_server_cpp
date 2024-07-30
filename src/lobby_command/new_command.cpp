@@ -15,7 +15,7 @@ std::string NewCommand::execute(std::vector<Table> &tables) const {
   tables.back().join(user);
   return "Joined Succesfully on newly created Table, up to '" +
          std::to_string(limit) + "' points and for '" + std::to_string(size) +
-         "' players";
+         "' players\n";
 }
 
 std::unique_ptr<const LobbyCommand>

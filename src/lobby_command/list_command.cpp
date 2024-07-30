@@ -8,7 +8,7 @@ std::string ListCommand::execute(std::vector<Table> &tables) const {
   std::string ret;
   size_t index = 0;
   for (const Table &table : tables) {
-    ret += std::to_string(index++) + table.info() + "\n";
+    ret += std::to_string(index++) + ") " + table.info() + "\n";
   }
   return ret;
 }

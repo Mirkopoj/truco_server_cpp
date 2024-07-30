@@ -1,4 +1,5 @@
 #include "../../include/authenticated_user.hpp"
+#include "../../include/lobby_command/list_command.hpp"
 #include "../../include/lobby_command/lobby_command.hpp"
 #include "../../include/lobby_command/lobby_command_factory.hpp"
 #include "../../include/msd/channel.hpp"
@@ -8,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <poll.h>
 #include <signal.h>
@@ -67,11 +69,20 @@ int main() {
 void handle_client(Socket socket, msd::channel<LobbyMsg> &lobby_ch) {
   AutenticatedUser authenticaded_user(std::move(socket));
   msd::channel<std::string> resp;
+  authenticaded_user.send("Welcome, " + authenticaded_user.name() +
+                          ".\ntype help to see available commands\n");
+  lobby_ch << LobbyMsg{
+      .command = std::make_unique<ListCommand>(),
+      .channel = &resp,
+  };
+  std::string res;
+  resp >> res;
+  authenticaded_user.send(res);
   while (1) {
     try {
       LobbyMsg msg = {
-          .command = LobbyCommandFactory::build(
-              authenticaded_user.recv(), &authenticaded_user),
+          .command = LobbyCommandFactory::build(authenticaded_user.recv(),
+                                                &authenticaded_user),
           .channel = &resp,
       };
       lobby_ch << std::move(msg);

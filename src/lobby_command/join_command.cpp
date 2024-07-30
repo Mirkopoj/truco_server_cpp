@@ -13,7 +13,7 @@ std::string JoinCommand::execute(std::vector<Table> &tables) const {
   } catch (const std::out_of_range &e) {
     return e.what();
   }
-  return "Joined Succesfully";
+  return "Joined Succesfully\n";
 }
 
 std::unique_ptr<const LobbyCommand>

@@ -41,7 +41,10 @@ Socket SocketListener::accept() {
   return Socket(new_socket_addr, new_socket_len, new_socket_fd);
 }
 
-SocketListener::~SocketListener() { close(m_socket_fd); }
+SocketListener::~SocketListener() {
+  close(m_socket_fd);
+  std::cout << "RIP SocketListener\n";
+}
 
 Socket::Socket(sockaddr_in new_socket_addr, socklen_t new_socket_len,
                int new_socket_fd)
