@@ -13,7 +13,7 @@ public:
   Socket &operator=(const Socket &) = delete;
   ~Socket();
 
-  std::string recv();
+  std::string recv(struct pollfd *fd = nullptr);
   void send(std::string);
 
   std::string addr();

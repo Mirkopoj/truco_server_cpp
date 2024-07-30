@@ -4,12 +4,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <poll.h>
 #include <stdexcept>
 #include <string>
 #include <strings.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <poll.h>
 
 SocketListener::SocketListener(uint16_t port, int backlog) {
   bzero((char *)&m_socket_addr, sizeof(m_socket_addr));
@@ -53,17 +54,25 @@ Socket::Socket(Socket &&other)
   other.m_socket_fd = -1;
 }
 
-std::string Socket::recv() {
+std::string Socket::recv(struct pollfd *fd) {
   const size_t buf_size = 1024;
   char buf[buf_size];
   std::string ret;
   int read;
-  struct pollfd fds;
-  fds.fd = m_socket_fd;
-  fds.events = POLLIN;
-  int poll_result = poll(&fds, 1, -1); 
+  struct pollfd fds[2];
+  fds[0].fd = m_socket_fd;
+  fds[0].events = POLLIN;
+  nfds_t fdsc = 1;
+  if (fd) {
+    fds[1] = *fd;
+    fdsc = 2;
+  }
+  int poll_result = poll(fds, fdsc, -1);
   if (poll_result == -1) {
     throw std::runtime_error("Error in poll");
+  }
+  if (fds[1].revents & POLLIN) {
+    throw std::runtime_error("Cancelation");
   }
   do {
     read = ::recv(m_socket_fd, buf, buf_size, 0);

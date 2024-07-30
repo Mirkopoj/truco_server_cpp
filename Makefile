@@ -1,13 +1,19 @@
 CC = clang++
 LDFLAGS = -L../truco_domain_wrapper/target/release -ltruco_domain_wrapper
-LDTESTFLAGS = -lcriterion 
-CFLAGS = -O -std=c++20 
+LDTESTFLAGS = -lcriterion
+CFLAGS = -std=c++20
 ifeq ($(DEBUG),1)
 	CFLAGS += -g3
 endif
+ifeq ($(OPT),1)
+	CFLAGS += -O3
+endif
+ifeq ($(LV),1)
+	LDFLAGS += -v
+endif
 
 MAINS = $(shell find src/mains/ -maxdepth 1 -type f -name "*.cpp")
-SRCS = $(shell find src/ -maxdepth 1 -type f -name "*.cpp")
+SRCS = $(shell find src/ -path "src/mains" -prune -o -path "src/tests" -prune -o -type f -name "*.cpp" | grep cpp)
 MAINOBJS = $(patsubst src/mains/%.cpp, obj/mains/%.o, $(MAINS))
 MAINOUTS = $(patsubst src/mains/%.cpp, %, $(MAINS))
 TESTS = $(shell find src/tests/ -maxdepth 1 -type f -name "*.cpp")
