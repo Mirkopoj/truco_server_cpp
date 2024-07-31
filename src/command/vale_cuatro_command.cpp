@@ -12,7 +12,7 @@ CommandResponse ValeCuatroCommand::execute() const {
     game->cantar_vale_cuatro(name.c_str());
     ret = CommandResponse{.route = broadcast,
                           .msg = name + " cantó valecuatro\n"};
-  } catch (std::exception &e) {
+  } catch (const std::exception &e) {
     ret = CommandResponse{.route = single, .msg = e.what()};
   }
   return ret;

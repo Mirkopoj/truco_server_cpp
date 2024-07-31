@@ -12,7 +12,7 @@ CommandResponse IrseAlMasoCommand::execute() const {
     game->irse_al_maso(name.c_str());
     ret =
         CommandResponse{.route = broadcast, .msg = name + " se fue al maso\n"};
-  } catch (std::exception &e) {
+  } catch (const std::exception &e) {
     ret = CommandResponse{.route = single, .msg = e.what()};
   }
   return ret;

@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <sys/poll.h>
@@ -67,6 +69,48 @@ void solve_joining(std::mutex &mutex,
   joining.clear();
 }
 
+void broadcast_msg(std::mutex &mutex,
+                   std::vector<const AutenticatedUser *> &players,
+                   std::vector<const AutenticatedUser *> &observers,
+                   std::string msg) {
+  std::lock_guard<std::mutex> guard(mutex);
+  for (auto player : players) {
+    player->send(msg);
+  }
+  for (auto observer : observers) {
+    observer->send(msg);
+  }
+}
+
+std::string winner(std::optional<Equipo> win) {
+  if (!win.has_value()) {
+    return "";
+  }
+  switch (win.value()) {
+  case Nosotros:
+    return "Nosotros\n";
+  case Ellos:
+    return "Ellos\n";
+  }
+}
+
+void mostrar_partida(std::mutex &mutex,
+                     std::vector<const AutenticatedUser *> &players,
+                     std::vector<const AutenticatedUser *> &observers,
+                     std::unique_ptr<Truco> &game) {
+  if (game != nullptr) {
+    broadcast_msg(mutex, players, observers, game->print_state() + "\n");
+    std::lock_guard<std::mutex> guard(mutex);
+    for (auto player : players) {
+      player->send(game->print_player(player->name().c_str()) + "\n");
+    }
+    if (game->terminado()) {
+      broadcast_msg(mutex, players, observers, winner(game->ganador()));
+      std::terminate();
+    }
+  }
+}
+
 void table_main(std::mutex &mutex,
                 std::vector<const AutenticatedUser *> &players,
                 std::vector<const AutenticatedUser *> &observers,
@@ -88,27 +132,25 @@ void table_main(std::mutex &mutex,
           players[i]->send(res.msg);
           break;
         case broadcast:
-          std::lock_guard<std::mutex> guard(mutex);
-          for (auto player : players) {
-            player->send(res.msg);
-          }
-          for (auto observer : observers) {
-            observer->send(res.msg);
-          }
+          broadcast_msg(mutex, players, observers, res.msg);
           break;
         }
       } catch (const std::runtime_error &e) {
         players[i]->send(e.what());
       }
+      mostrar_partida(mutex, players, observers, game);
     }
   }
 }
 
 void try_build_game(std::mutex &mutex,
                     std::vector<const AutenticatedUser *> &players,
+                    std::vector<const AutenticatedUser *> &observers,
                     std::unique_ptr<Truco> &game, uint8_t size, uint8_t limit) {
-  if (players.size() == size) {
-    TrucoBuilder builder;
+  if (players.size() == size && game == nullptr) {
+    std::cout << "About to build\n";
+    TrucoBuilder builder{};
+    std::cout << "hay builder\n";
     builder.hasta(limit);
     std::cout << "hasta: " << std::to_string(limit) << ", " << players.size()
               << " players: ";
@@ -118,6 +160,7 @@ void try_build_game(std::mutex &mutex,
     }
     std::cout << "\n";
     game = std::make_unique<Truco>(builder.build());
+    mostrar_partida(mutex, players, observers, game);
   }
 }
 
@@ -129,7 +172,7 @@ void table_thread(std::mutex &mutex,
   std::unique_ptr<Truco> game(nullptr);
   while (1) {
     solve_joining(mutex, players, joining);
-    try_build_game(mutex, players, game, size, limit);
+    try_build_game(mutex, players, observers, game, size, limit);
     table_main(mutex, players, observers, game);
   }
 }

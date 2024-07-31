@@ -11,7 +11,7 @@ CommandResponse NoQuieroCommand::execute() const {
     game->cantar_no_quiero(name.c_str());
     ret =
         CommandResponse{.route = broadcast, .msg = name + " dijo no quiero\n"};
-  } catch (std::exception &e) {
+  } catch (const std::exception &e) {
     ret = CommandResponse{.route = single, .msg = e.what()};
   }
   return ret;

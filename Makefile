@@ -23,7 +23,7 @@ OBJS = $(patsubst src/%.cpp, obj/%.o, $(SRCS))
 
 all: $(MAINOUTS)
 
-$(MAINOUTS): $(OBJS) $(MAINOBJS)
+$(MAINOUTS): $(OBJS) $(MAINOBJS) rust
 	@mkdir -p bin
 	$(CC) $(CFLAGS) -o bin/$@ obj/mains/$@.o $(OBJS) $(LDFLAGS)
 
@@ -42,6 +42,9 @@ obj/mains/%.o: src/mains/%.cpp
 obj/tests/%.o: src/tests/%.cpp 
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+rust:
+	cargo build --release --manifest-path "../truco_domain_wrapper/Cargo.toml"
 
 .PHONY: test clean
 

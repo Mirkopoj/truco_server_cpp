@@ -1,5 +1,6 @@
 #include "../../include/command/tirar_carta_command.hpp"
 #include <cstddef>
+#include <exception>
 #include <memory>
 #include <string>
 
@@ -11,8 +12,9 @@ CommandResponse TirarCartaCommand::execute() const {
   CommandResponse ret;
   try {
     game->tirar_carta(name.c_str(), carta);
-    ret = CommandResponse{.route = broadcast, .msg = name + " tiró\n"};
-  } catch (std::exception &e) {
+    ret = CommandResponse{.route = broadcast,
+                          .msg = name + " tiró" + std::to_string(carta) + "\n"};
+  } catch (const std::exception &e) {
     ret = CommandResponse{.route = single, .msg = e.what()};
   }
   return ret;

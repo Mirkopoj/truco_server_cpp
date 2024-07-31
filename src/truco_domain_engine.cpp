@@ -39,6 +39,9 @@ CResult cantar_re_truco(const TrucoRust *ptr, const char *player);
 CResult cantar_vale_cuatro(const TrucoRust *ptr, const char *player);
 CResult tirar_carta(const TrucoRust *ptr, const char *player, size_t card);
 
+const char *print_state(const TrucoRust *ptr);
+CResult print_player(const TrucoRust *ptr, const char *player);
+
 typedef struct {
   char **data;
   size_t length;
@@ -228,5 +231,19 @@ std::optional<Equipo> Truco::ganador() {
     return res.some;
   case None:
     return {};
+  }
+}
+
+std::string Truco::print_state() {
+  return ::print_state((const TrucoRust *)truco);
+}
+
+std::string Truco::print_player(const char *player) {
+  CResult res = ::print_player((const TrucoRust *)truco, player);
+  switch (res.tag) {
+  case Ok:
+    return std::string(res.error);
+  case Err:
+    throw std::runtime_error(res.error);
   }
 }

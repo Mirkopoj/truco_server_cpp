@@ -12,7 +12,7 @@ CommandResponse FaltaEnvidoCommand::execute() const {
     game->cantar_falta_envido(name.c_str());
     ret = CommandResponse{.route = broadcast,
                           .msg = name + " cantó falta envido\n"};
-  } catch (std::exception &e) {
+  } catch (const std::exception &e) {
     ret = CommandResponse{.route = single, .msg = e.what()};
   }
   return ret;

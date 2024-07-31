@@ -36,6 +36,9 @@ public:
   bool terminado();
   std::optional<Equipo> ganador();
 
+  std::string print_state();
+  std::string print_player(const char *player);
+
 private:
   friend class TrucoBuilder;
   Truco(const void *truco_rust);

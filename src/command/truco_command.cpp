@@ -10,7 +10,7 @@ CommandResponse TrucoCommand::execute() const {
   try {
     game->cantar_truco(name.c_str());
     ret = CommandResponse{.route = broadcast, .msg = name + " cantó truco\n"};
-  } catch (std::exception &e) {
+  } catch (const std::exception &e) {
     ret = CommandResponse{.route = single, .msg = e.what()};
   }
   return ret;
