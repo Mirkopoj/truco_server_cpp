@@ -10,5 +10,5 @@ public:
 
   virtual CommandResponse execute() const override;
 
-  static std::unique_ptr<const Command> build(std::string);
+  static std::unique_ptr<const Command> build(std::string, std::string);
 };

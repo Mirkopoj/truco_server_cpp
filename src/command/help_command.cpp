@@ -9,6 +9,7 @@ CommandResponse HelpCommand::execute() const {
              "Any other string will pass through as a message\n"};
 }
 
-std::unique_ptr<const Command> HelpCommand::build(std::string _) {
+std::unique_ptr<const Command> HelpCommand::build(std::string _,
+                                                  std::string __) {
   return std::make_unique<HelpCommand>();
 }

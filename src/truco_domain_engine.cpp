@@ -214,6 +214,11 @@ void Truco::tirar_carta(const char *player, size_t card) {
   }
 }
 
+std::vector<std::string> Truco::valid_commands(const char *player) {
+  CStringArray res = ::valid_commands((const TrucoRust *)truco, player);
+  return convert_to_cpp_vector(res);
+}
+
 bool Truco::terminado() { return ::terminado((const TrucoRust *)truco); }
 
 std::optional<Equipo> Truco::ganador() {

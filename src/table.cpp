@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -12,17 +13,18 @@
 #include <thread>
 #include <vector>
 
-void table_thread(msd::channel<Truco> &ch, std::mutex &mutex,
+void table_thread(std::mutex &mutex,
                   std::vector<const AutenticatedUser *> &players,
                   std::vector<const AutenticatedUser *> &observers,
-                  std::vector<const AutenticatedUser *> &joining);
+                  std::vector<const AutenticatedUser *> &joining, uint8_t size,
+                  uint8_t limit);
 
 Table::Table(uint8_t table_size, uint8_t hasta)
     : m_size(table_size), m_limit(hasta),
       m_mutex(std::make_unique<std::mutex>()) {
-  std::thread(table_thread, std::ref(*m_channel), std::ref(*m_mutex),
-              std::ref(m_players), std::ref(m_observers),
-              std::ref(m_joining_players))
+  std::thread(table_thread, std::ref(*m_mutex), std::ref(m_players),
+              std::ref(m_observers), std::ref(m_joining_players), m_size,
+              m_limit)
       .detach();
 }
 
@@ -32,18 +34,6 @@ void Table::join(const AutenticatedUser *new_player) {
     throw std::runtime_error("Table is full\n");
   }
   m_joining_players.push_back(new_player);
-  /*if (m_players.size() == m_size) {
-    TrucoBuilder builder;
-    builder.hasta(m_limit);
-    std::cout << "hasta: " << std::to_string(m_limit) << ", "
-              << m_players.size() << " players: ";
-    for (const AutenticatedUser *player : m_players) {
-      builder.add_player(player->name().c_str());
-      std::cout << player->name() << ", ";
-    }
-    std::cout << "\n";
-    Truco game = builder.build();
-  }*/
 }
 
 void Table::observe(const AutenticatedUser *new_observer) {
@@ -77,9 +67,10 @@ void solve_joining(std::mutex &mutex,
   joining.clear();
 }
 
-void table_lobby(std::mutex &mutex,
-                 std::vector<const AutenticatedUser *> &players,
-                 std::vector<const AutenticatedUser *> &observers) {
+void table_main(std::mutex &mutex,
+                std::vector<const AutenticatedUser *> &players,
+                std::vector<const AutenticatedUser *> &observers,
+                std::unique_ptr<Truco> &game) {
   std::vector<pollfd> pfds = get_pfds(players);
   int poll_status = poll(pfds.data(), pfds.size(), 1000);
   if (poll_status == -1) {
@@ -89,7 +80,9 @@ void table_lobby(std::mutex &mutex,
   for (size_t i = 0; i < players.size(); ++i) {
     if (pfds[i].revents & POLLIN) {
       try {
-        res = CommandFactory::build(players[i]->recv())->execute();
+        res =
+            CommandFactory::build(players[i]->recv(), players[i]->name(), game)
+                ->execute();
         switch (res.route) {
         case single:
           players[i]->send(res.msg);
@@ -97,10 +90,10 @@ void table_lobby(std::mutex &mutex,
         case broadcast:
           std::lock_guard<std::mutex> guard(mutex);
           for (auto player : players) {
-            player->send(players[i]->name() + ": " + res.msg);
+            player->send(res.msg);
           }
           for (auto observer : observers) {
-            observer->send(players[i]->name() + ": " + res.msg);
+            observer->send(res.msg);
           }
           break;
         }
@@ -111,12 +104,32 @@ void table_lobby(std::mutex &mutex,
   }
 }
 
-void table_thread(msd::channel<Truco> &ch, std::mutex &mutex,
+void try_build_game(std::mutex &mutex,
+                    std::vector<const AutenticatedUser *> &players,
+                    std::unique_ptr<Truco> &game, uint8_t size, uint8_t limit) {
+  if (players.size() == size) {
+    TrucoBuilder builder;
+    builder.hasta(limit);
+    std::cout << "hasta: " << std::to_string(limit) << ", " << players.size()
+              << " players: ";
+    for (const AutenticatedUser *player : players) {
+      builder.add_player(player->name().c_str());
+      std::cout << player->name() << ", ";
+    }
+    std::cout << "\n";
+    game = std::make_unique<Truco>(builder.build());
+  }
+}
+
+void table_thread(std::mutex &mutex,
                   std::vector<const AutenticatedUser *> &players,
                   std::vector<const AutenticatedUser *> &observers,
-                  std::vector<const AutenticatedUser *> &joining) {
+                  std::vector<const AutenticatedUser *> &joining, uint8_t size,
+                  uint8_t limit) {
+  std::unique_ptr<Truco> game(nullptr);
   while (1) {
     solve_joining(mutex, players, joining);
-    table_lobby(mutex, players, observers);
+    try_build_game(mutex, players, game, size, limit);
+    table_main(mutex, players, observers, game);
   }
 }
