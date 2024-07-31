@@ -105,7 +105,9 @@ void mostrar_partida(std::mutex &mutex,
       player->send(game->print_player(player->name().c_str()) + "\n");
     }
     if (game->terminado()) {
-      broadcast_msg(mutex, players, observers, winner(game->ganador()));
+      std::string ganador = "GANADOR:" + winner(game->ganador());
+      broadcast_msg(mutex, players, observers, ganador);
+      std::cout << "Terminado " << ganador << "\n";
       std::terminate();
     }
   }
@@ -148,9 +150,7 @@ void try_build_game(std::mutex &mutex,
                     std::vector<const AutenticatedUser *> &observers,
                     std::unique_ptr<Truco> &game, uint8_t size, uint8_t limit) {
   if (players.size() == size && game == nullptr) {
-    std::cout << "About to build\n";
     TrucoBuilder builder{};
-    std::cout << "hay builder\n";
     builder.hasta(limit);
     std::cout << "hasta: " << std::to_string(limit) << ", " << players.size()
               << " players: ";
