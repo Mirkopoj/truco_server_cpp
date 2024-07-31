@@ -4,11 +4,13 @@
 #include <string>
 #include <strings.h>
 
-std::string ListCommand::execute(std::vector<Table> &tables) const {
-  std::string ret;
+CommandConfirmation
+ListCommand::execute(std::vector<std::unique_ptr<Table>> &tables) const {
+  CommandConfirmation ret;
+  ret.in_table = false;
   size_t index = 0;
-  for (const Table &table : tables) {
-    ret += std::to_string(index++) + ") " + table.info() + "\n";
+  for (const std::unique_ptr<Table> &table : tables) {
+    ret.msg += std::to_string(index++) + ") " + table->info() + "\n";
   }
   return ret;
 }

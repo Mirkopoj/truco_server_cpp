@@ -5,6 +5,7 @@
 #include "../../include/msd/channel.hpp"
 #include "../../include/socket.hpp"
 #include "../../include/table.hpp"
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <cstring>
@@ -26,7 +27,7 @@ void got_signal(int) { quit.store(true); }
 
 typedef struct {
   std::unique_ptr<const LobbyCommand> command;
-  msd::channel<std::string> *channel;
+  msd::channel<CommandConfirmation> *channel;
 } LobbyMsg;
 
 void handle_client(Socket, msd::channel<LobbyMsg> &);
@@ -68,16 +69,16 @@ int main() {
 
 void handle_client(Socket socket, msd::channel<LobbyMsg> &lobby_ch) {
   AutenticatedUser authenticaded_user(std::move(socket));
-  msd::channel<std::string> resp;
+  msd::channel<CommandConfirmation> resp;
   authenticaded_user.send("Welcome, " + authenticaded_user.name() +
                           ".\ntype help to see available commands\n");
   lobby_ch << LobbyMsg{
       .command = std::make_unique<ListCommand>(),
       .channel = &resp,
   };
-  std::string res;
+  CommandConfirmation res;
   resp >> res;
-  authenticaded_user.send(res);
+  authenticaded_user.send(res.msg);
   while (1) {
     try {
       LobbyMsg msg = {
@@ -86,9 +87,11 @@ void handle_client(Socket socket, msd::channel<LobbyMsg> &lobby_ch) {
           .channel = &resp,
       };
       lobby_ch << std::move(msg);
-      std::string res;
       resp >> res;
-      authenticaded_user.send(res);
+      authenticaded_user.send(res.msg);
+      if (res.in_table) {
+        resp >> res;
+      }
     } catch (const std::runtime_error &e) {
       authenticaded_user.send(e.what());
     }
@@ -96,7 +99,7 @@ void handle_client(Socket socket, msd::channel<LobbyMsg> &lobby_ch) {
 }
 
 void lobby(msd::channel<LobbyMsg> &channel) {
-  std::vector<Table> tables;
+  std::vector<std::unique_ptr<Table>> tables;
   for (const auto ch : std::move(channel)) {
     if (quit.load()) {
       break;

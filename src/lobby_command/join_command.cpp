@@ -1,19 +1,24 @@
 #include "../../include/lobby_command/join_command.hpp"
 #include "../../include/lexer.hpp"
 #include <cstddef>
-#include <stdexcept>
+#include <exception>
 #include <strings.h>
 
 JoinCommand::JoinCommand(size_t table_index, const AutenticatedUser *user_ptr)
     : index(table_index), user(user_ptr) {}
 
-std::string JoinCommand::execute(std::vector<Table> &tables) const {
+CommandConfirmation
+JoinCommand::execute(std::vector<std::unique_ptr<Table>> &tables) const {
+  CommandConfirmation ret;
   try {
-    tables.at(index).join(user);
-  } catch (const std::out_of_range &e) {
-    return e.what();
+    tables.at(index)->join(user);
+  } catch (const std::exception &e) {
+    ret.in_table = false;
+    ret.msg = e.what();
   }
-  return "Joined Succesfully\n";
+  ret.in_table = true;
+  ret.msg = "Joined Succesfully\n";
+  return ret;
 }
 
 std::unique_ptr<const LobbyCommand>

@@ -9,7 +9,8 @@ public:
   ListCommand() = default;
   virtual ~ListCommand() override = default;
 
-  virtual std::string execute(std::vector<Table> &tables) const override;
+  virtual CommandConfirmation
+  execute(std::vector<std::unique_ptr<Table>> &tables) const override;
 
   static std::unique_ptr<const LobbyCommand> build(std::vector<std::string>,
                                                    const AutenticatedUser *);

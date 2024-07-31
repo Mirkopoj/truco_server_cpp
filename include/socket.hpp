@@ -13,16 +13,18 @@ public:
   Socket &operator=(const Socket &) = delete;
   ~Socket();
 
-  std::string recv(struct pollfd *fd = nullptr);
-  void send(std::string);
+  std::string recv(struct pollfd *fd = nullptr) const;
+  void send(std::string) const;
 
-  std::string addr();
+  std::string addr() const;
+
+  pollfd get_poll_fd() const;
 
 private:
   friend class SocketListener;
   Socket(sockaddr_in, socklen_t, int);
 
-  bool no_messages();
+  bool no_messages() const;
 
   sockaddr_in m_socket_addr;
   socklen_t m_socket_len;

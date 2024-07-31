@@ -8,13 +8,18 @@ ObserveCommand::ObserveCommand(size_t table_index,
                                const AutenticatedUser *user_ptr)
     : index(table_index), user(user_ptr) {}
 
-std::string ObserveCommand::execute(std::vector<Table> &tables) const {
+CommandConfirmation
+ObserveCommand::execute(std::vector<std::unique_ptr<Table>> &tables) const {
+  CommandConfirmation ret;
   try {
-    tables.at(index).observe(user);
+    tables.at(index)->observe(user);
   } catch (const std::out_of_range &e) {
-    return e.what();
+    ret.in_table = false;
+    ret.msg = e.what();
   }
-  return "Joined Succesfully as an observer\n";
+  ret.in_table = true;
+  ret.msg = "Joined Succesfully as an observer\n";
+  return ret;
 }
 
 std::unique_ptr<const LobbyCommand>

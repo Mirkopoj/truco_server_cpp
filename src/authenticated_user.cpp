@@ -16,10 +16,10 @@ AutenticatedUser::AutenticatedUser(Socket socket)
 
 std::string AutenticatedUser::name() const { return m_name; }
 
-std::string AutenticatedUser::recv(struct pollfd *fd) {
+std::string AutenticatedUser::recv(struct pollfd *fd) const {
   return m_socket.recv(fd);
 }
 
-std::string AutenticatedUser::recv() { return m_socket.recv(); }
+void AutenticatedUser::send(std::string msg) const { m_socket.send(msg); }
 
-void AutenticatedUser::send(std::string msg) { m_socket.send(msg); }
+pollfd AutenticatedUser::get_poll_fd() const { return m_socket.get_poll_fd(); }

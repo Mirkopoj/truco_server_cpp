@@ -16,9 +16,9 @@ typedef enum {
 
 class Truco {
 public:
-  Truco(Truco &&) = delete;
+  Truco(Truco &&) = default;
   Truco(const Truco &) = delete;
-  Truco &operator=(Truco &&) = delete;
+  Truco &operator=(Truco &&) = default;
   Truco &operator=(const Truco &) = delete;
   ~Truco() = default;
 

@@ -35,7 +35,7 @@ std::map<std::string,
          std::function<std::unique_ptr<const LobbyCommand>(
              std::vector<std::string>, const AutenticatedUser *)>> const
     LobbyCommandFactory::map = {
-        {"help", HelpCommand::build},
+        {"help", LobbyHelpCommand::build},
         {"list", ListCommand::build},
         {"new", NewCommand::build},
         {"join", JoinCommand::build},

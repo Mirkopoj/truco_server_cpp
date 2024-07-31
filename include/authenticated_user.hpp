@@ -9,9 +9,10 @@ public:
 
   std::string name() const;
 
-  std::string recv(struct pollfd *);
-  std::string recv();
-  void send(std::string);
+  std::string recv(struct pollfd * = nullptr) const;
+  void send(std::string) const;
+
+  pollfd get_poll_fd() const;
 
 private:
   Socket m_socket;

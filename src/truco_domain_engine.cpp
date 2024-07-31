@@ -99,7 +99,9 @@ void TrucoBuilder::hasta(uint8_t hasta) {
 
 Truco TrucoBuilder::build() {
   if (count >= MAX_PLAYERS || count % 2 != 0 || !tiene_limite) {
-    throw std::runtime_error("Can't build a game in this conditions");
+    throw std::runtime_error(
+        "Can't build a game in this conditions => count: " +
+        std::to_string(count) + ", limite: " + std::to_string(tiene_limite));
   }
   CResultTruco res = ::build((const TrucoBuilderRust *)truco_builder);
   switch (res.tag) {

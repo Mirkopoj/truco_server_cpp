@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <string>
 #include <strings.h>
-#include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -57,7 +56,7 @@ Socket::Socket(Socket &&other)
   other.m_socket_fd = -1;
 }
 
-std::string Socket::recv(struct pollfd *fd) {
+std::string Socket::recv(struct pollfd *fd) const {
   const size_t buf_size = 1024;
   char buf[buf_size];
   std::string ret;
@@ -90,22 +89,29 @@ std::string Socket::recv(struct pollfd *fd) {
   return ret;
 }
 
-bool Socket::no_messages() {
+bool Socket::no_messages() const {
   int err = errno;
   return err == EWOULDBLOCK || err == EAGAIN;
 }
 
-void Socket::send(std::string msg) {
+void Socket::send(std::string msg) const {
   int sent = ::send(m_socket_fd, msg.data(), msg.length(), 0);
   if (sent < 0) {
     throw std::runtime_error("Error sending message to client");
   }
 }
 
-std::string Socket::addr() {
+std::string Socket::addr() const {
   std::string ret("123.123.123.123");
   inet_ntop(AF_INET, &m_socket_addr, ret.data(), ret.length());
   return ret;
+}
+
+pollfd Socket::get_poll_fd() const {
+  return pollfd{
+      .fd = m_socket_fd,
+      .events = POLLIN,
+  };
 }
 
 Socket::~Socket() {

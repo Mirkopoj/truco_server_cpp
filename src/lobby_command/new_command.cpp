@@ -10,12 +10,15 @@ NewCommand::NewCommand(uint8_t table_size, uint8_t hasta,
                        const AutenticatedUser *user_ptr)
     : size(table_size), limit(hasta), user(user_ptr) {}
 
-std::string NewCommand::execute(std::vector<Table> &tables) const {
-  tables.push_back(Table(size, limit));
-  tables.back().join(user);
-  return "Joined Succesfully on newly created Table, up to '" +
-         std::to_string(limit) + "' points and for '" + std::to_string(size) +
-         "' players\n";
+CommandConfirmation
+NewCommand::execute(std::vector<std::unique_ptr<Table>> &tables) const {
+  tables.push_back(std::make_unique<Table>(size, limit));
+  tables.back()->join(user);
+  return CommandConfirmation{
+      .in_table = true,
+      .msg = "Joined Succesfully on newly created Table, up to '" +
+             std::to_string(limit) + "' points and for '" +
+             std::to_string(size) + "' players\n"};
 }
 
 std::unique_ptr<const LobbyCommand>
